@@ -1,0 +1,8 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.11",
+    "marked": "^16.1.2",
+    "tailwindcss": "^4.1.11"
+  }
+}

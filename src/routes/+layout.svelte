@@ -1,6 +1,5 @@
 <script lang="ts">
 	import '../app.css';
-	import favicon from '$lib/assets/favicon.ico';
 	import logo from '$lib/assets/logo.svg';
 
 	const homeHref = (import.meta.env.BASE_URL ?? '/') as string;
@@ -9,7 +8,7 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<title>Cham Manganti</title>
 </svelte:head>
 
 <header

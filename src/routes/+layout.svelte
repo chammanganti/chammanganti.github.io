@@ -24,7 +24,7 @@
 <div class="h-16 shrink-0"></div>
 
 <main
-	class="bg-gradient-to-br from-slate-50 to-slate-100 h-screen pb-6 dark:from-slate-900 dark:to-slate-800"
+	class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800"
 >
 	<div class="mx-auto px-6 pt-24">
 		{@render children?.()}

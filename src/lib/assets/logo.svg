@@ -1,17 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="1024"
+  height="1024"
+  viewBox="0 0 1024 1024"
+>
   <defs>
     <style>
-      .cls-1 {
-        fill: none;
-        stroke: #000;
-        stroke-width: 85px;
-      }
+    .cls-1 {
+      fill: none;
+      stroke: #000;
+      stroke-width: 85px;
+    }
 
-      .cls-2 {
-        fill-rule: evenodd;
-      }
+    .cls-2 {
+      fill-rule: evenodd;
+    }
     </style>
   </defs>
-  <circle class="cls-1" cx="512" cy="512" r="450"/>
-  <path id="Rounded_Rectangle_1" data-name="Rounded Rectangle 1" class="cls-2" d="M512.354,452.249L770.448,194.156a42.5,42.5,0,0,1,60.1,60.1L572.458,512.354A42.5,42.5,0,1,1,512.354,452.249Z"/>
+  <circle class="cls-1" cx="512" cy="512" r="450" />
+  <path
+    id="Rounded_Rectangle_1"
+    data-name="Rounded Rectangle 1"
+    class="cls-2"
+    d="M512.354,452.249L770.448,194.156a42.5,42.5,0,0,1,60.1,60.1L572.458,512.354A42.5,42.5,0,1,1,512.354,452.249Z"
+  />
 </svg>

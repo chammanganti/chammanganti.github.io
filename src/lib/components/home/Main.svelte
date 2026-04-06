@@ -1,3 +1,49 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+
+	const HEALTH_URL = 'https://hlbe.chammanganti.dev/hlh/health';
+
+	type ServiceHealth = {
+		name: string;
+		ready: boolean;
+		checked_at: string;
+	};
+	type HealthResponse = Record<string, ServiceHealth>;
+	type CloudflareStatus = 'unknown' | 'up' | 'down';
+
+	let health = $state<HealthResponse>({});
+	let cloudflare = $state<CloudflareStatus>('unknown');
+
+	function isReady(key: string): boolean {
+		return health[key]?.ready === true;
+	}
+
+	function nodeClass(ready: boolean): string {
+		return ready ? 'badge ok' : 'badge off';
+	}
+
+	async function fetchHealth(): Promise<void> {
+		try {
+			const res = await fetch(HEALTH_URL);
+			if (res.ok) {
+				health = (await res.json()) as HealthResponse;
+				cloudflare = 'up';
+			} else {
+				cloudflare = 'down';
+			}
+		} catch {
+			cloudflare = 'down';
+		}
+	}
+
+	onMount(() => {
+		fetchHealth();
+
+		const interval = setInterval(fetchHealth, 30000);
+		return () => clearInterval(interval);
+	});
+</script>
+
 <div class="main">
 	<div class="content">
 		<h1>DevOps Engineer</h1>
@@ -47,7 +93,9 @@
 					<div class="name">cloudflare</div>
 					<div class="desc">zero trust · tunnel</div>
 				</div>
-				<span class="badge ok">running</span>
+				<span class={cloudflare === 'up' ? 'badge ok' : 'badge off'}>
+					{cloudflare === 'up' ? 'up' : cloudflare === 'down' ? 'down' : '…'}
+				</span>
 			</div>
 			<div class="wire"></div>
 			<div class="node">
@@ -62,7 +110,9 @@
 					<div class="name">traefik</div>
 					<div class="desc">ingress · TLS termination</div>
 				</div>
-				<span class="badge ok">running</span>
+				<span class={nodeClass(isReady('traefik'))}>
+					{isReady('traefik') ? 'running' : 'unknown'}
+				</span>
 			</div>
 			<div class="wire"></div>
 			<div class="node">
@@ -77,7 +127,9 @@
 					<div class="name">argocd</div>
 					<div class="desc">GitOps · app sync</div>
 				</div>
-				<span class="badge ok">synced</span>
+				<span class={nodeClass(isReady('argocd'))}>
+					{isReady('argocd') ? 'running' : 'unknown'}
+				</span>
 			</div>
 			<div class="fork">
 				<div class="wire"></div>
@@ -98,6 +150,7 @@
 						<div class="name">health</div>
 						<div class="desc">go</div>
 					</div>
+					<span class="status-dot {isReady('homelab-health') ? 'up' : 'down'}"></span>
 				</div>
 				<div class="node">
 					<div class="icon">
@@ -111,6 +164,7 @@
 						<div class="name">action</div>
 						<div class="desc">go</div>
 					</div>
+					<span class="status-dot {isReady('homelab-action') ? 'up' : 'down'}"></span>
 				</div>
 				<div class="node">
 					<div class="icon">
@@ -124,6 +178,7 @@
 						<div class="name">demo-app-1</div>
 						<div class="desc">demo · go</div>
 					</div>
+					<span class="status-dot {isReady('demo-app-1') ? 'up' : 'down'}"></span>
 				</div>
 				<div class="node">
 					<div class="icon">
@@ -137,6 +192,7 @@
 						<div class="name">demo-app-2</div>
 						<div class="desc">demo · go</div>
 					</div>
+					<span class="status-dot {isReady('demo-app-2') ? 'up' : 'down'}"></span>
 				</div>
 			</div>
 		</div>
@@ -296,6 +352,10 @@
 		background: var(--green-bg);
 		color: var(--green-txt);
 	}
+	.topology > .node > .badge.off {
+		background: var(--surf2);
+		color: var(--ink3);
+	}
 	.topology > .wire,
 	.topology > .fork > .wire {
 		width: 2px;
@@ -310,5 +370,17 @@
 		.topology > .fork > .wire:not(:first-child) {
 			display: block;
 		}
+	}
+	.topology > .fork > .node > .status-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		flex-shrink: 0;
+	}
+	.topology > .fork > .node > .status-dot.up {
+		background: var(--green);
+	}
+	.topology > .fork > .node > .status-dot.down {
+		background: var(--bdr2);
 	}
 </style>

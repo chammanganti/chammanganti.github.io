@@ -3,20 +3,66 @@
 </script>
 
 <svelte:head>
-	<title>404 Not Found</title>
+	<title>404 — Cham Manganti</title>
 </svelte:head>
 
-<section
-	class="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center px-6 text-center"
->
-	<h1 class="mb-3 text-5xl font-bold text-slate-800 dark:text-slate-200">404</h1>
-	<p class="mb-6 text-lg text-slate-600 dark:text-slate-400">
-		This page drifted from the desired state. Maybe it skipped the deploy.
-	</p>
-	<a
-		href={homeHref}
-		class="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800/40"
-	>
-		<span>Go back home</span>
-	</a>
+<section class="error-page">
+	<div class="code">404</div>
+	<h1>Page not found</h1>
+	<p>This page drifted from the desired state.<br />Maybe it skipped the deploy.</p>
+	<a href={homeHref} class="btn-outline">← Go back home</a>
 </section>
+
+<style>
+	.error-page {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		min-height: 80vh;
+		text-align: center;
+		padding: 3rem 2rem;
+		gap: 1rem;
+	}
+
+	.code {
+		font-family: var(--fm);
+		font-size: 11px;
+		letter-spacing: 0.18em;
+		color: var(--ink3);
+		text-transform: uppercase;
+		border: 0.5px solid var(--bdr2);
+		padding: 3px 12px;
+		border-radius: 20px;
+		margin-bottom: 0.5rem;
+	}
+
+	h1 {
+		font-size: clamp(1.4rem, 4vw, 1.8rem);
+		font-weight: 500;
+		letter-spacing: -0.03em;
+		line-height: 1.2;
+	}
+
+	p {
+		font-size: 14px;
+		color: var(--ink2);
+		line-height: 1.75;
+	}
+
+	a {
+		margin-top: 0.5rem;
+		background: transparent;
+		color: var(--ink);
+		border: 0.5px solid var(--bdr2);
+		padding: 7px 16px;
+		border-radius: var(--border-radius-md);
+		font-size: 13px;
+		text-decoration: none;
+		transition: background 0.15s;
+	}
+
+	a:hover {
+		background: var(--surf2);
+	}
+</style>

@@ -1,15 +1,11 @@
 <script lang="ts">
+	import type { DeployState } from '$lib/types';
 	import { onMount } from 'svelte';
 
 	const ACTION_URL = 'https://hlbe.chammanganti.dev/act';
 
-	type DeployState = {
-		is_deployed: boolean;
-		deployed_at?: string;
-		remaining?: string;
-	};
+	const { deployState = $bindable() }: { deployState: DeployState } = $props();
 
-	let deployState = $state<DeployState>({ is_deployed: false });
 	let isDeploying = $state(false);
 	let error = $state('');
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
@@ -32,7 +28,10 @@
 		try {
 			const res = await fetch(`${ACTION_URL}/status`);
 			if (res.ok) {
-				deployState = (await res.json()) as DeployState;
+				const data = (await res.json()) as DeployState;
+				deployState.is_deployed = data.is_deployed;
+				deployState.deployed_at = data.deployed_at;
+				deployState.remaining = data.remaining;
 			}
 		} catch {
 			// app might not be running yet
@@ -53,7 +52,7 @@
 				error = 'deploy failed';
 			}
 		} catch {
-			error = 'could not reach action app';
+			error = 'could not reach homelab-action app';
 		} finally {
 			isDeploying = false;
 		}

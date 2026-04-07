@@ -378,7 +378,7 @@
 		flex-shrink: 0;
 	}
 	.topology > .fork > .node > .status-dot.up {
-		background: var(--green);
+		background: #639922;
 	}
 	.topology > .fork > .node > .status-dot.down {
 		background: var(--bdr2);

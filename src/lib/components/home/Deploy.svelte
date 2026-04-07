@@ -152,8 +152,8 @@
 		color: var(--ink2);
 	}
 	.deploy > .card > .state > .dot {
-		width: 7px;
-		height: 7px;
+		width: 8px;
+		height: 8px;
 		border-radius: 50%;
 		background: var(--bdr2);
 		flex-shrink: 0;

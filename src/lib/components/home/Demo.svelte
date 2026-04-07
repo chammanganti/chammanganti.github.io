@@ -182,7 +182,7 @@
 		border-radius: 20px;
 		font-family: var(--fm);
 		background: var(--green-bg);
-		color: var(--blue-txt);
+		color: var(--green-txt);
 	}
 	.apps > .card > .header > .tag.disabled {
 		background: var(--surf2);

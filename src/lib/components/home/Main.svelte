@@ -1,8 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-
-	const HEALTH_URL = 'https://hlbe.chammanganti.dev/hlh/health';
-
 	type ServiceHealth = {
 		name: string;
 		ready: boolean;
@@ -11,7 +7,7 @@
 	type HealthResponse = Record<string, ServiceHealth>;
 	type CloudflareStatus = 'unknown' | 'up' | 'down';
 
-	let health = $state<HealthResponse>({});
+	const { health }: { health: HealthResponse; isDeployed: boolean } = $props();
 	let cloudflare = $state<CloudflareStatus>('unknown');
 
 	function isReady(key: string): boolean {
@@ -21,27 +17,6 @@
 	function nodeClass(ready: boolean): string {
 		return ready ? 'badge ok' : 'badge off';
 	}
-
-	async function fetchHealth(): Promise<void> {
-		try {
-			const res = await fetch(HEALTH_URL);
-			if (res.ok) {
-				health = (await res.json()) as HealthResponse;
-				cloudflare = 'up';
-			} else {
-				cloudflare = 'down';
-			}
-		} catch {
-			cloudflare = 'down';
-		}
-	}
-
-	onMount(() => {
-		fetchHealth();
-
-		const interval = setInterval(fetchHealth, 30000);
-		return () => clearInterval(interval);
-	});
 </script>
 
 <div class="main">
@@ -378,7 +353,7 @@
 		flex-shrink: 0;
 	}
 	.topology > .fork > .node > .status-dot.up {
-		background: var(--green);
+		background: #639922;
 	}
 	.topology > .fork > .node > .status-dot.down {
 		background: var(--bdr2);

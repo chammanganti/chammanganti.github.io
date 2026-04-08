@@ -1,3 +1,67 @@
+<script lang="ts">
+	import type { DeployState, HealthResponse } from '$lib/types';
+	import { onMount } from 'svelte';
+
+	const HEALTH_URL = 'https://hlbe.chammanganti.dev/hlh/health';
+	const ACTION_URL = 'https://hlbe.chammanganti.dev/act';
+
+	const {
+		deployState = $bindable(),
+		health = $bindable()
+	}: {
+		deployState: DeployState;
+		health: HealthResponse;
+	} = $props();
+
+	let isDeploying = $state(false);
+	let error = $state('');
+
+	async function fetchStatus(): Promise<void> {
+		try {
+			const [statusRes, healthRes] = await Promise.all([
+				fetch(`${ACTION_URL}/status`),
+				fetch(HEALTH_URL)
+			]);
+			if (statusRes.ok) {
+				const data = (await statusRes.json()) as DeployState;
+				deployState.is_deployed = data.is_deployed;
+				deployState.deployed_at = data.deployed_at;
+				deployState.remaining = data.remaining;
+			}
+			if (healthRes.ok) {
+				const data = (await healthRes.json()) as HealthResponse;
+				Object.assign(health, data);
+			}
+		} catch {}
+	}
+
+	async function deploy(): Promise<void> {
+		isDeploying = true;
+		error = '';
+		try {
+			const res = await fetch(`${ACTION_URL}/deploy`, { method: 'POST' });
+			if (res.ok || res.status === 202) {
+				await fetchStatus();
+			} else if (res.status === 409) {
+				error = 'already deployed';
+			} else {
+				error = 'deploy failed';
+			}
+		} catch {
+			error = 'could not reach homelab-action app';
+		} finally {
+			isDeploying = false;
+		}
+	}
+
+	onMount(() => {
+		fetchStatus();
+
+		const interval = setInterval(fetchStatus, 30000);
+		return () => clearInterval(interval);
+	});
+</script>
+
 <div class="section">
 	<div class="head">
 		<h2>Deploy the demo apps</h2>
@@ -5,21 +69,38 @@
 			Trigger a live ArgoCD sync to spin up both apps into the cluster. Watch the diagram light up
 			above once pods are running.
 		</p>
-		<p class="note">Note: After an hour the apps will be automatically removed.</p>
+		<p class="note">Note: Every 15 minutes the apps will be automatically removed.</p>
 	</div>
 
 	<div class="deploy">
 		<div class="card">
 			<div class="info">
 				<div class="name">homelab demo</div>
-				<div class="desc">namespace: demo</div>
+				<div class="desc">
+					namespace: demo
+					{#if deployState.is_deployed && deployState.remaining}
+						&nbsp;·&nbsp; teardown in {deployState.remaining}
+					{/if}
+				</div>
 			</div>
 			<div class="state">
-				<div class="dot" id="state-dot"></div>
-				<span id="state-text">not deployed</span>
+				<div class="dot {isDeploying ? 'pending' : deployState.is_deployed ? 'running' : ''}"></div>
+				<span id="state-text">
+					{#if isDeploying}
+						deploying…
+					{:else if deployState.is_deployed}
+						running
+					{:else}
+						not deployed
+					{/if}
+				</span>
 			</div>
-			<button class="btn-primary" id="deploy" disabled>Deploy</button>
-			<button class="btn-outline btn-sm" id="btn-teardown" style="display:none">Teardown</button>
+			{#if error}
+				<span class="error">{error}</span>
+			{/if}
+			<button class="btn-primary" onclick={deploy} disabled={isDeploying || deployState.is_deployed}
+				>{isDeploying ? 'Deploying…' : 'Deploy'}</button
+			>
 		</div>
 	</div>
 </div>
@@ -67,8 +148,8 @@
 		color: var(--ink2);
 	}
 	.deploy > .card > .state > .dot {
-		width: 7px;
-		height: 7px;
+		width: 8px;
+		height: 8px;
 		border-radius: 50%;
 		background: var(--bdr2);
 		flex-shrink: 0;
@@ -89,5 +170,10 @@
 		50% {
 			opacity: 0;
 		}
+	}
+	.deploy > .card > .error {
+		font-size: 12px;
+		color: var(--red-txt);
+		font-family: var(--fm);
 	}
 </style>

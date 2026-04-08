@@ -1,6 +1,5 @@
 <script lang="ts">
-	const APP1_URL = 'https://hld.chammanganti.dev/demo-app-1';
-	const APP2_URL = 'https://hld.chammanganti.dev/demo-app-2';
+	const ACTION_URL = 'https://hlbe.chammanganti.dev/act';
 
 	type InfoResponse = {
 		hostname: string;
@@ -35,7 +34,7 @@
 		app1.visible = true;
 		app1.data = '';
 		try {
-			const res = await fetch(`${APP1_URL}/info`);
+			const res = await fetch(`${ACTION_URL}/demo/info`);
 			if (res.ok) {
 				const json = (await res.json()) as InfoResponse;
 				app1.data = JSON.stringify(json, null, 2);
@@ -60,7 +59,7 @@
 		app2.visible = true;
 		app2.data = '';
 		try {
-			const res = await fetch(`${APP2_URL}/even/${encodeURIComponent(n)}`);
+			const res = await fetch(`${ACTION_URL}/demo/is-even/${encodeURIComponent(n)}`);
 			if (res.ok) {
 				const json = (await res.json()) as EvenResponse;
 				app2.data = JSON.stringify(json, null, 2);

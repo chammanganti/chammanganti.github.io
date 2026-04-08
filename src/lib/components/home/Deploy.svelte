@@ -1,41 +1,38 @@
 <script lang="ts">
-	import type { DeployState } from '$lib/types';
+	import type { DeployState, HealthResponse } from '$lib/types';
 	import { onMount } from 'svelte';
 
+	const HEALTH_URL = 'https://hlbe.chammanganti.dev/hlh/health';
 	const ACTION_URL = 'https://hlbe.chammanganti.dev/act';
 
-	const { deployState = $bindable() }: { deployState: DeployState } = $props();
+	const {
+		deployState = $bindable(),
+		health = $bindable()
+	}: {
+		deployState: DeployState;
+		health: HealthResponse;
+	} = $props();
 
 	let isDeploying = $state(false);
 	let error = $state('');
-	let pollInterval: ReturnType<typeof setInterval> | null = null;
-
-	function startPolling(): void {
-		if (pollInterval) return;
-		pollInterval = setInterval(async () => {
-			await fetchStatus();
-		}, 15000);
-	}
-
-	function stopPolling(): void {
-		if (pollInterval) {
-			clearInterval(pollInterval);
-			pollInterval = null;
-		}
-	}
 
 	async function fetchStatus(): Promise<void> {
 		try {
-			const res = await fetch(`${ACTION_URL}/status`);
-			if (res.ok) {
-				const data = (await res.json()) as DeployState;
+			const [statusRes, healthRes] = await Promise.all([
+				fetch(`${ACTION_URL}/status`),
+				fetch(HEALTH_URL)
+			]);
+			if (statusRes.ok) {
+				const data = (await statusRes.json()) as DeployState;
 				deployState.is_deployed = data.is_deployed;
 				deployState.deployed_at = data.deployed_at;
 				deployState.remaining = data.remaining;
 			}
-		} catch {
-			// app might not be running yet
-		}
+			if (healthRes.ok) {
+				const data = (await healthRes.json()) as HealthResponse;
+				Object.assign(health, data);
+			}
+		} catch {}
 	}
 
 	async function deploy(): Promise<void> {
@@ -45,7 +42,6 @@
 			const res = await fetch(`${ACTION_URL}/deploy`, { method: 'POST' });
 			if (res.ok || res.status === 202) {
 				await fetchStatus();
-				startPolling();
 			} else if (res.status === 409) {
 				error = 'already deployed';
 			} else {
@@ -59,10 +55,10 @@
 	}
 
 	onMount(() => {
-		fetchStatus().then(() => {
-			if (deployState.is_deployed) startPolling();
-		});
-		return () => stopPolling();
+		fetchStatus();
+
+		const interval = setInterval(fetchStatus, 30000);
+		return () => clearInterval(interval);
 	});
 </script>
 

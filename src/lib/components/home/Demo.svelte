@@ -27,7 +27,7 @@
 
 	let app1 = $state<AppResponse>({ loading: false, data: '', ok: false, visible: false });
 	let app2 = $state<AppResponse>({ loading: false, data: '', ok: false, visible: false });
-	let isEvenInput = $state('');
+	let isEvenInput = $state<string | number>('');
 
 	async function fetchInfo(): Promise<void> {
 		app1.loading = true;
@@ -52,7 +52,7 @@
 	}
 
 	async function fetchIsEven(): Promise<void> {
-		const n = isEvenInput.trim();
+		const n = isEvenInput;
 		if (!n) return;
 
 		app2.loading = true;
@@ -134,7 +134,7 @@
 				<button
 					class="btn-outline btn-sm"
 					onclick={fetchIsEven}
-					disabled={!isDeployed || app2.loading || !isEvenInput.trim()}
+					disabled={!isDeployed || app2.loading || isEvenInput === '' || isEvenInput === null}
 				>
 					{app2.loading ? 'Sending…' : 'Send request'}
 				</button>

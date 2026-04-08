@@ -1,22 +1,8 @@
 <script lang="ts">
-	type ServiceHealth = {
-		name: string;
-		ready: boolean;
-		checked_at: string;
-	};
-	type HealthResponse = Record<string, ServiceHealth>;
-	type CloudflareStatus = 'unknown' | 'up' | 'down';
+	import type { HealthResponse } from '$lib/types';
+	import { isReady, nodeClass } from '$lib/utils/health';
 
-	const { health }: { health: HealthResponse; isDeployed: boolean } = $props();
-	let cloudflare = $state<CloudflareStatus>('unknown');
-
-	function isReady(key: string): boolean {
-		return health[key]?.ready === true;
-	}
-
-	function nodeClass(ready: boolean): string {
-		return ready ? 'badge ok' : 'badge off';
-	}
+	const { health }: { health: HealthResponse } = $props();
 </script>
 
 <div class="main">
@@ -68,8 +54,8 @@
 					<div class="name">cloudflare</div>
 					<div class="desc">zero trust · tunnel</div>
 				</div>
-				<span class={cloudflare === 'up' ? 'badge ok' : 'badge off'}>
-					{cloudflare === 'up' ? 'up' : cloudflare === 'down' ? 'down' : '…'}
+				<span class={nodeClass(isReady(health, 'homelab-health'))}>
+					{isReady(health, 'homelab-health') ? 'up' : 'unknown'}
 				</span>
 			</div>
 			<div class="wire"></div>
@@ -85,8 +71,8 @@
 					<div class="name">traefik</div>
 					<div class="desc">ingress · TLS termination</div>
 				</div>
-				<span class={nodeClass(isReady('traefik'))}>
-					{isReady('traefik') ? 'running' : 'unknown'}
+				<span class={nodeClass(isReady(health, 'traefik'))}>
+					{isReady(health, 'traefik') ? 'running' : 'unknown'}
 				</span>
 			</div>
 			<div class="wire"></div>
@@ -102,8 +88,8 @@
 					<div class="name">argocd</div>
 					<div class="desc">GitOps · app sync</div>
 				</div>
-				<span class={nodeClass(isReady('argocd'))}>
-					{isReady('argocd') ? 'running' : 'unknown'}
+				<span class={nodeClass(isReady(health, 'argocd'))}>
+					{isReady(health, 'argocd') ? 'running' : 'unknown'}
 				</span>
 			</div>
 			<div class="fork">
@@ -125,7 +111,7 @@
 						<div class="name">health</div>
 						<div class="desc">go</div>
 					</div>
-					<span class="status-dot {isReady('homelab-health') ? 'up' : 'down'}"></span>
+					<span class="status-dot {isReady(health, 'homelab-health') ? 'up' : 'down'}"></span>
 				</div>
 				<div class="node">
 					<div class="icon">
@@ -139,7 +125,7 @@
 						<div class="name">action</div>
 						<div class="desc">go</div>
 					</div>
-					<span class="status-dot {isReady('homelab-action') ? 'up' : 'down'}"></span>
+					<span class="status-dot {isReady(health, 'homelab-action') ? 'up' : 'down'}"></span>
 				</div>
 				<div class="node">
 					<div class="icon">
@@ -153,7 +139,7 @@
 						<div class="name">demo-app-1</div>
 						<div class="desc">demo · go</div>
 					</div>
-					<span class="status-dot {isReady('demo-app-1') ? 'up' : 'down'}"></span>
+					<span class="status-dot {isReady(health, 'demo-app-1') ? 'up' : 'down'}"></span>
 				</div>
 				<div class="node">
 					<div class="icon">
@@ -167,7 +153,7 @@
 						<div class="name">demo-app-2</div>
 						<div class="desc">demo · go</div>
 					</div>
-					<span class="status-dot {isReady('demo-app-2') ? 'up' : 'down'}"></span>
+					<span class="status-dot {isReady(health, 'demo-app-2') ? 'up' : 'down'}"></span>
 				</div>
 			</div>
 		</div>

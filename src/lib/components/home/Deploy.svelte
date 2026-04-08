@@ -1,36 +1,24 @@
 <script lang="ts">
-	import type { DeployState, HealthResponse } from '$lib/types';
+	import type { HealthResponse } from '$lib/types';
+	import { isReady } from '$lib/utils/health';
 	import { onMount } from 'svelte';
 
 	const HEALTH_URL = 'https://hlbe.chammanganti.dev/hlh/health';
 	const ACTION_URL = 'https://hlbe.chammanganti.dev/act';
 
-	const {
-		deployState = $bindable(),
-		health = $bindable()
-	}: {
-		deployState: DeployState;
-		health: HealthResponse;
-	} = $props();
+	const { health = $bindable() }: { health: HealthResponse } = $props();
 
 	let isDeploying = $state(false);
+	let areDemoAppsDeployed = $state(false);
 	let error = $state('');
 
 	async function fetchStatus(): Promise<void> {
 		try {
-			const [statusRes, healthRes] = await Promise.all([
-				fetch(`${ACTION_URL}/status`),
-				fetch(HEALTH_URL)
-			]);
-			if (statusRes.ok) {
-				const data = (await statusRes.json()) as DeployState;
-				deployState.is_deployed = data.is_deployed;
-				deployState.deployed_at = data.deployed_at;
-				deployState.remaining = data.remaining;
-			}
+			const healthRes = await fetch(HEALTH_URL);
 			if (healthRes.ok) {
 				const data = (await healthRes.json()) as HealthResponse;
 				Object.assign(health, data);
+				areDemoAppsDeployed = isReady(health, 'demo-app-1') && isReady(health, 'demo-app-2');
 			}
 		} catch {}
 	}
@@ -76,19 +64,14 @@
 		<div class="card">
 			<div class="info">
 				<div class="name">homelab demo</div>
-				<div class="desc">
-					namespace: demo
-					{#if deployState.is_deployed && deployState.remaining}
-						&nbsp;·&nbsp; teardown in {deployState.remaining}
-					{/if}
-				</div>
+				<div class="desc">namespace: demo</div>
 			</div>
 			<div class="state">
-				<div class="dot {isDeploying ? 'pending' : deployState.is_deployed ? 'running' : ''}"></div>
+				<div class="dot {isDeploying ? 'pending' : areDemoAppsDeployed ? 'running' : ''}"></div>
 				<span id="state-text">
 					{#if isDeploying}
 						deploying…
-					{:else if deployState.is_deployed}
+					{:else if areDemoAppsDeployed}
 						running
 					{:else}
 						not deployed
@@ -98,7 +81,7 @@
 			{#if error}
 				<span class="error">{error}</span>
 			{/if}
-			<button class="btn-primary" onclick={deploy} disabled={isDeploying || deployState.is_deployed}
+			<button class="btn-primary" onclick={deploy} disabled={isDeploying || areDemoAppsDeployed}
 				>{isDeploying ? 'Deploying…' : 'Deploy'}</button
 			>
 		</div>

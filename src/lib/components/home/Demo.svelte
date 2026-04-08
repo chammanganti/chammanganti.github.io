@@ -1,4 +1,7 @@
 <script lang="ts">
+	import type { HealthResponse } from '$lib/types';
+	import { isReady } from '$lib/utils/health';
+
 	const ACTION_URL = 'https://hlbe.chammanganti.dev/act';
 
 	type InfoResponse = {
@@ -23,7 +26,7 @@
 		visible: boolean;
 	};
 
-	const { isDeployed = false }: { isDeployed: boolean } = $props();
+	const { health }: { health: HealthResponse } = $props();
 
 	let app1 = $state<AppResponse>({ loading: false, data: '', ok: false, visible: false });
 	let app2 = $state<AppResponse>({ loading: false, data: '', ok: false, visible: false });
@@ -94,8 +97,8 @@
 		<div class="card">
 			<div class="header">
 				<div class="title">demo-app-1</div>
-				<div class="tag {isDeployed ? '' : 'disabled'}">
-					{isDeployed ? 'running' : 'not running'}
+				<div class="tag {isReady(health, 'demo-app-1') ? '' : 'disabled'}">
+					{isReady(health, 'demo-app-1') ? 'running' : 'not running'}
 				</div>
 			</div>
 			<div class="endpoint">GET /info</div>
@@ -103,7 +106,7 @@
 				<button
 					class="btn-outline btn-sm"
 					onclick={fetchInfo}
-					disabled={!isDeployed || app1.loading}
+					disabled={!isReady(health, 'demo-app-1') || app1.loading}
 				>
 					{app1.loading ? 'Sending…' : 'Send request'}
 				</button>
@@ -118,8 +121,8 @@
 		<div class="card">
 			<div class="header">
 				<div class="title">demo-app-2</div>
-				<div class="tag {isDeployed ? '' : 'disabled'}">
-					{isDeployed ? 'running' : 'not running'}
+				<div class="tag {isReady(health, 'demo-app-2') ? '' : 'disabled'}">
+					{isReady(health, 'demo-app-2') ? 'running' : 'not running'}
 				</div>
 			</div>
 			<div class="endpoint">GET /is-even/{'{number}'}</div>
@@ -129,12 +132,15 @@
 					placeholder="Enter a number…"
 					bind:value={isEvenInput}
 					onkeydown={handleKeydown}
-					disabled={!isDeployed || app2.loading}
+					disabled={!isReady(health, 'demo-app-2') || app2.loading}
 				/>
 				<button
 					class="btn-outline btn-sm"
 					onclick={fetchIsEven}
-					disabled={!isDeployed || app2.loading || isEvenInput === '' || isEvenInput === null}
+					disabled={!isReady(health, 'demo-app-2') ||
+						app2.loading ||
+						isEvenInput === '' ||
+						isEvenInput === null}
 				>
 					{app2.loading ? 'Sending…' : 'Send request'}
 				</button>

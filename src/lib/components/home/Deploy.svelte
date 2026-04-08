@@ -9,31 +9,44 @@
 	const { health = $bindable() }: { health: HealthResponse } = $props();
 
 	let isDeploying = $state(false);
-	let areDemoAppsDeployed = $state(false);
 	let error = $state('');
+
+	const areDemoAppsDeployed = $derived(
+		isReady(health, 'demo-app-1') && isReady(health, 'demo-app-2')
+	);
 
 	async function fetchStatus(): Promise<void> {
 		try {
 			const healthRes = await fetch(HEALTH_URL);
-			if (healthRes.ok) {
-				const data = (await healthRes.json()) as HealthResponse;
-				Object.assign(health, data);
-				areDemoAppsDeployed = isReady(health, 'demo-app-1') && isReady(health, 'demo-app-2');
-			}
+			if (!healthRes.ok) return;
+			const data = (await healthRes.json()) as HealthResponse;
+			Object.assign(health, data);
 		} catch {}
 	}
 
 	async function deploy(): Promise<void> {
 		isDeploying = true;
 		error = '';
+
 		try {
 			const res = await fetch(`${ACTION_URL}/deploy`, { method: 'POST' });
-			if (res.ok || res.status === 202) {
+
+			if (!res.ok && res.status !== 202) {
+				error = res.status === 409 ? 'already deployed' : 'deploy failed';
+				return;
+			}
+
+			const maxRetries = 20;
+			const intervalMs = 3000;
+
+			for (let i = 0; i < maxRetries; i++) {
 				await fetchStatus();
-			} else if (res.status === 409) {
-				error = 'already deployed';
-			} else {
-				error = 'deploy failed';
+				if (areDemoAppsDeployed) break;
+				await new Promise((r) => setTimeout(r, intervalMs));
+			}
+
+			if (!areDemoAppsDeployed) {
+				error = 'deployment timed out';
 			}
 		} catch {
 			error = 'could not reach homelab-action app';

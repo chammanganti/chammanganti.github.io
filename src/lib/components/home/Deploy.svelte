@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { HealthResponse } from '$lib/types';
 	import { isReady } from '$lib/utils/health';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 
-	const HEALTH_URL = 'https://hlbe.chammanganti.dev/hlh/health';
+	const HEALTH_STREAM_URL = 'https://hlbe.chammanganti.dev/hlh/health/stream';
 	const ACTION_URL = 'https://hlbe.chammanganti.dev/act';
 
 	const { health = $bindable() }: { health: HealthResponse } = $props();
@@ -15,13 +15,18 @@
 		isReady(health, 'demo-app-1') && isReady(health, 'demo-app-2')
 	);
 
-	async function fetchStatus(): Promise<void> {
-		try {
-			const healthRes = await fetch(HEALTH_URL);
-			if (!healthRes.ok) return;
-			const data = (await healthRes.json()) as HealthResponse;
+	let es: EventSource | null = null;
+
+	function connectSSE(): void {
+		es = new EventSource(HEALTH_STREAM_URL);
+		es.onmessage = (e) => {
+			const data = JSON.parse(e.data) as HealthResponse;
 			Object.assign(health, data);
-		} catch {}
+		};
+		es.onerror = () => {
+			es?.close();
+			setTimeout(connectSSE, 3000);
+		};
 	}
 
 	async function deploy(): Promise<void> {
@@ -36,31 +41,30 @@
 				return;
 			}
 
-			const maxRetries = 20;
-			const intervalMs = 3000;
-
-			for (let i = 0; i < maxRetries; i++) {
-				await fetchStatus();
-				if (areDemoAppsDeployed) break;
-				await new Promise((r) => setTimeout(r, intervalMs));
-			}
-
-			if (!areDemoAppsDeployed) {
-				error = 'deployment timed out';
-			}
-		} catch {
-			error = 'could not reach homelab-action app';
+			await new Promise<void>((resolve, reject) => {
+				const timeout = setTimeout(() => reject(new Error('timeout')), 60000);
+				const unwatch = $effect.root(() => {
+					$effect(() => {
+						if (areDemoAppsDeployed) {
+							clearTimeout(timeout);
+							unwatch();
+							resolve();
+						}
+					});
+				});
+			});
+		} catch (e) {
+			error =
+				e instanceof Error && e.message === 'timeout'
+					? 'deployment timed out'
+					: 'could not reach homelab-action app';
 		} finally {
 			isDeploying = false;
 		}
 	}
 
-	onMount(() => {
-		fetchStatus();
-
-		const interval = setInterval(fetchStatus, 30000);
-		return () => clearInterval(interval);
-	});
+	onMount(() => connectSSE());
+	onDestroy(() => es?.close());
 </script>
 
 <div class="section">

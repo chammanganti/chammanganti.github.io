@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { HealthResponse } from '$lib/types';
 	import { isReady, nodeClass } from '$lib/utils/health';
+	import Stats from './Stats.svelte';
 
 	const { health }: { health: HealthResponse } = $props();
 </script>
@@ -27,7 +28,7 @@
 	</div>
 
 	<div class="homelab">
-		<div class="label">homelab · thinkcentre · talos linux</div>
+		<div class="label">homelab</div>
 		<div class="topology">
 			<div class="node">
 				<div class="icon">
@@ -157,6 +158,8 @@
 				</div>
 			</div>
 		</div>
+
+		<Stats />
 	</div>
 </div>
 

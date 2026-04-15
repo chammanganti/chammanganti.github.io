@@ -27,7 +27,7 @@
 	</div>
 
 	<div class="homelab">
-		<div class="label">homelab · rpi 4b · k3s</div>
+		<div class="label">homelab · thinkcentre · talos linux</div>
 		<div class="topology">
 			<div class="node">
 				<div class="icon">
